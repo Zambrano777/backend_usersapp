@@ -1,0 +1,59 @@
+package com.alvaro.backend.usersapp.backendusersapp.service;
+
+import java.util.List;
+
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.alvaro.backend.usersapp.backendusersapp.models.entity.User;
+import com.alvaro.backend.usersapp.backendusersapp.models.request.UserRequest;
+import com.alvaro.backend.usersapp.backendusersapp.repository.UserRepository;
+
+@Service
+public class UserInterfaceImpl implements UserInterface {
+
+    @Autowired
+    private UserRepository repository;
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<User> listaUsuarios() {
+        return (List<User>) repository.findAll();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<User> findById(Long id) {
+        return repository.findById(id);
+    }
+
+    @Override
+    @Transactional
+    public User save(User user) {
+        return repository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void remove(Long id) {
+        repository.deleteById(id);
+    }
+
+    @Override
+    public Optional<User> update(UserRequest user, Long id) {
+        Optional<User> userEncontrado = this.findById(id);
+        User userOptional = null;
+        if (userEncontrado.isPresent()) {
+            User userDb = userEncontrado.orElseThrow();
+            userDb.setUserName(user.getUserName());
+            userDb.setEmail(user.getEmail());
+            userOptional = this.save(userDb);
+        }
+        return Optional.ofNullable(userOptional);
+    }
+
+
+}
