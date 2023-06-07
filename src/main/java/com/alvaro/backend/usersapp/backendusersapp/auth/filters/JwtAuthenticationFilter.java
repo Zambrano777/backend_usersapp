@@ -21,6 +21,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import static com.alvaro.backend.usersapp.backendusersapp.auth.TokenConfig.*;
+
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     private AuthenticationManager authenticationManager;
@@ -63,11 +65,11 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         String username = ((org.springframework.security.core.userdetails.User) authResult.getPrincipal())
                 .getUsername();
-        String originalInput = "texto_clave_secreta_falsa." + username;
+        String originalInput = SECRET_KEY + "." + username;
         String token = Base64.getEncoder().encodeToString(originalInput.getBytes());
 
         // añadiendo data a la cabecera
-        response.addHeader("Authorization", "Bearer: " + token);
+        response.addHeader(HEADER_AUTHORIZATION , PREFIX_TOKEN + token);
         Map<String, Object> body = new HashMap<>();
         body.put("token", token);
         body.put("message", String.format("Hola %s, has iniciado sesión con éxito", username));
