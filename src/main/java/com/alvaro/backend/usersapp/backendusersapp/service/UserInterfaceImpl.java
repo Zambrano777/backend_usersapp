@@ -1,5 +1,6 @@
 package com.alvaro.backend.usersapp.backendusersapp.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import java.util.Optional;
@@ -9,8 +10,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.alvaro.backend.usersapp.backendusersapp.models.entity.Role;
 import com.alvaro.backend.usersapp.backendusersapp.models.entity.User;
 import com.alvaro.backend.usersapp.backendusersapp.models.request.UserRequest;
+import com.alvaro.backend.usersapp.backendusersapp.repository.RoleRepository;
 import com.alvaro.backend.usersapp.backendusersapp.repository.UserRepository;
 
 @Service
@@ -18,6 +21,9 @@ public class UserInterfaceImpl implements UserInterface {
 
     @Autowired
     private UserRepository repository;
+
+    @Autowired
+    RoleRepository repositoryRole;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -39,6 +45,13 @@ public class UserInterfaceImpl implements UserInterface {
     public User save(User user) {
         // Encriptamos password de usuario
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        Optional<Role> roleBd = repositoryRole.findByName("ROLE_USER");
+        List<Role> roles = new ArrayList<>();
+        if (roleBd.isPresent()) {
+            roles.add(roleBd.orElseThrow());
+        }
+        user.setRoles(roles);
         return repository.save(user);
     }
 
