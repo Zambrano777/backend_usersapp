@@ -1,8 +1,14 @@
 package com.alvaro.backend.usersapp.backendusersapp.auth;
 
+import java.security.Key;
+
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+
 public class TokenConfig {
-   
-    public final static String SECRET_KEY = "texto_clave_secreta_falsa"; 
-    public final static String PREFIX_TOKEN = "Bearer "; 
-    public final static String HEADER_AUTHORIZATION = "Authorization"; 
+
+    public final static Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    public final static String PREFIX_TOKEN = "Bearer ";
+    public final static String HEADER_AUTHORIZATION = "Authorization";
+
 }

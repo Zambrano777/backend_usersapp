@@ -2,7 +2,6 @@ package com.alvaro.backend.usersapp.backendusersapp.auth.filters;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +17,9 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,14 +41,13 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
             return;
         }
         String token = header.replace(PREFIX_TOKEN, "");
-        byte[] tokenDecodeBytes = Base64.getDecoder().decode(token);
-        String tokenDecode = new String(tokenDecodeBytes);
 
-        String[] tokenArray = tokenDecode.split("\\.");
-        String secret = tokenArray[0];
-        String username = tokenArray[1];
+        try {
 
-        if (SECRET_KEY.equals(secret)) {
+            Claims claims = Jwts.parserBuilder().setSigningKey(SECRET_KEY).build().parseClaimsJws(token).getBody();
+
+            String username = claims.getSubject();
+
             List<GrantedAuthority> authorities = new ArrayList<>();
             authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
 
@@ -55,9 +56,10 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
             chain.doFilter(request, response);
-        } else {
+        } catch (JwtException e) {
             Map<String, String> body = new HashMap<>();
             body.put("message", "El token no es válido");
+            body.put("error", e.getMessage());
             response.getWriter().write(new ObjectMapper().writeValueAsString(body));
             response.setStatus(403);
             response.setContentType("application/json");
