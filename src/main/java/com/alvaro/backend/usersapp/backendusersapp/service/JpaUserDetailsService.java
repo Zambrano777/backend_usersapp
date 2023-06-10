@@ -1,9 +1,8 @@
 package com.alvaro.backend.usersapp.backendusersapp.service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collector;
+
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,9 +36,9 @@ public class JpaUserDetailsService implements UserDetailsService {
         com.alvaro.backend.usersapp.backendusersapp.models.entity.User userT = usuario.orElseThrow();
 
         List<GrantedAuthority> authorities = userT.getRoles()
-        .stream()
-        .map(role -> new SimpleGrantedAuthority(role.getName()))
-        .collect(Collectors.toList());
+                .stream()
+                .map(role -> new SimpleGrantedAuthority(role.getName()))
+                .collect(Collectors.toList());
 
         return new User(userT.getUserName(), userT.getPassword(), true, true, true, true, authorities);
 

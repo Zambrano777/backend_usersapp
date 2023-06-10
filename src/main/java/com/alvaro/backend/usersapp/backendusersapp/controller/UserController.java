@@ -20,10 +20,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.alvaro.backend.usersapp.backendusersapp.models.dto.UserDto;
 import com.alvaro.backend.usersapp.backendusersapp.models.entity.User;
 import com.alvaro.backend.usersapp.backendusersapp.models.request.UserRequest;
 import com.alvaro.backend.usersapp.backendusersapp.service.UserInterfaceImpl;
-
 
 import jakarta.validation.Valid;
 
@@ -36,17 +36,16 @@ public class UserController {
     private UserInterfaceImpl service;
 
     @GetMapping
-    public ResponseEntity<List<User>> listaUsuarios() {
+    public List<UserDto> listaUsuarios() {
 
-        List<User> respuesta = service.listaUsuarios();
-        return ResponseEntity.ok().body(respuesta);
+        return service.listaUsuarios();
 
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Optional<User>> encuentraPorId(@PathVariable Long id) {
+    public ResponseEntity<?> encuentraPorId(@PathVariable Long id) {
 
-        Optional<User> usuarioEncontrado = service.findById(id);
+        Optional<UserDto> usuarioEncontrado = service.findById(id);
 
         if (usuarioEncontrado.isPresent()) {
             return ResponseEntity.ok(usuarioEncontrado);
@@ -62,24 +61,19 @@ public class UserController {
             return validation(result);
         }
 
-        User usuarioRegistrado = service.save(user);
-
-        if (Objects.isNull(usuarioRegistrado)) {
-            return ResponseEntity.internalServerError().build();
-        }
-
-        return ResponseEntity.ok(usuarioRegistrado);
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.save(user));
 
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> actualizaUsuario(@Valid @RequestBody UserRequest user, BindingResult result, @PathVariable Long id) {
+    public ResponseEntity<?> actualizaUsuario(@Valid @RequestBody UserRequest user, BindingResult result,
+            @PathVariable Long id) {
 
         if (result.hasErrors()) {
             return validation(result);
         }
 
-        Optional<User> o = service.update(user, id);
+        Optional<UserDto> o = service.update(user, id);
         if (o.isPresent()) {
             return ResponseEntity.status(HttpStatus.CREATED).body(o.orElseThrow());
         }
@@ -89,7 +83,7 @@ public class UserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> remove(@PathVariable Long id) {
 
-        Optional<User> usuarioEncontrado = service.findById(id);
+        Optional<UserDto> usuarioEncontrado = service.findById(id);
         if (usuarioEncontrado.isPresent()) {
             service.remove(id);
             return ResponseEntity.noContent().build();

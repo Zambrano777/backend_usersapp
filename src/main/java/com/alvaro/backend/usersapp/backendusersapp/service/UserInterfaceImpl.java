@@ -4,12 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.alvaro.backend.usersapp.backendusersapp.models.dto.UserDto;
+import com.alvaro.backend.usersapp.backendusersapp.models.dto.mapper.DtoMapperUser;
 import com.alvaro.backend.usersapp.backendusersapp.models.entity.Role;
 import com.alvaro.backend.usersapp.backendusersapp.models.entity.User;
 import com.alvaro.backend.usersapp.backendusersapp.models.request.UserRequest;
@@ -30,19 +33,22 @@ public class UserInterfaceImpl implements UserInterface {
 
     @Override
     @Transactional(readOnly = true)
-    public List<User> listaUsuarios() {
-        return (List<User>) repository.findAll();
+    public List<UserDto> listaUsuarios() {
+        List<User> user = (List<User>) repository.findAll();
+
+        return user.stream().map(userX -> DtoMapperUser.builder().setUser(userX).build()).collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<User> findById(Long id) {
-        return repository.findById(id);
+    public Optional<UserDto> findById(Long id) {
+        return repository.findById(id).map(user -> DtoMapperUser.builder().setUser(user).build());
+
     }
 
     @Override
     @Transactional
-    public User save(User user) {
+    public UserDto save(User user) {
         // Encriptamos password de usuario
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
@@ -52,7 +58,7 @@ public class UserInterfaceImpl implements UserInterface {
             roles.add(roleBd.orElseThrow());
         }
         user.setRoles(roles);
-        return repository.save(user);
+        return DtoMapperUser.builder().setUser(repository.save(user)).build();
     }
 
     @Override
@@ -62,16 +68,16 @@ public class UserInterfaceImpl implements UserInterface {
     }
 
     @Override
-    public Optional<User> update(UserRequest user, Long id) {
-        Optional<User> userEncontrado = this.findById(id);
+    public Optional<UserDto> update(UserRequest user, Long id) {
+        Optional<User> userEncontrado = repository.findById(id);
         User userOptional = null;
         if (userEncontrado.isPresent()) {
             User userDb = userEncontrado.orElseThrow();
             userDb.setUserName(user.getUserName());
             userDb.setEmail(user.getEmail());
-            userOptional = this.save(userDb);
+            userOptional = repository.save(userDb);
         }
-        return Optional.ofNullable(userOptional);
+        return Optional.ofNullable(DtoMapperUser.builder().setUser(userOptional).build());
     }
 
 }
